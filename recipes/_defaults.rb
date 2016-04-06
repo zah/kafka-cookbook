@@ -3,14 +3,6 @@
 # Recipe:: _defaults
 #
 
-unless broker_attribute?(:broker, :id)
-  node.default['kafka']['broker']['broker_id'] = node['ipaddress'].delete('.').to_i % 2**31
-end
-
-unless broker_attribute?(:port)
-  node.default['kafka']['broker']['port'] = 6667
-end
-
 unless node['kafka']['gc_log_opts']
   node.default['kafka']['gc_log_opts'] = %W[
     -Xloggc:#{::File.join(node['kafka']['log_dir'], 'kafka-gc.log')}
