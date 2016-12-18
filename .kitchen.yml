@@ -5,7 +5,7 @@ driver:
     - 'vagrantfiles/cachier.rb'
   box_check_update: false
   customize:
-    memory: 1024
+    memory: 512
     cpus: 2
 verifier:
   root_path: '/tmp/vagrant-cache/busser'
@@ -99,3 +99,13 @@ suites:
     attributes:
       kafka:
         init_style: 'systemd'
+  - name: runit
+    run_list:
+      - recipe[java]
+      - recipe[runit]
+      - recipe[kafka]
+    excludes:
+      - centos-7.2
+    attributes:
+      kafka:
+        init_style: 'runit'

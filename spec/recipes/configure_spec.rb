@@ -11,7 +11,7 @@ describe 'kafka::_configure' do
   end
 
   let :described_recipes do
-    ['kafka::_defaults', described_recipe, 'kafka::_service']
+    ['kafka::_defaults', described_recipe, 'kafka::_service', 'kafka::_coordinate']
   end
 
   let :node do
@@ -213,7 +213,7 @@ describe 'kafka::_configure' do
 
     context 'environment variables' do
       it 'creates a file for setting necessary environment variables' do
-        expect(chef_run).to create_template(env_path).with(
+        expect(chef_run).to create_file(env_path).with(
           owner: 'root',
           group: 'root',
           mode: '644',
@@ -244,24 +244,20 @@ describe 'kafka::_configure' do
         expect(chef_run).to have_configured(env_path).with('(export |)KAFKA_GC_LOG_OPTS').as('"-Xloggc:/var/log/kafka/kafka-gc.log -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps"')
       end
 
-      it 'sets KAFKA_OPTS' do
-        expect(chef_run).to have_configured(env_path).with('(export |)KAFKA_OPTS').as('""')
-      end
-
       it 'sets KAFKA_JVM_PERFORMANCE_OPTS' do
         expect(chef_run).to have_configured(env_path).with('(export |)KAFKA_JVM_PERFORMANCE_OPTS').as('"-server -XX:+UseCompressedOops -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:+CMSScavengeBeforeRemark -XX:+DisableExplicitGC -Djava.awt.headless=true"')
       end
 
       it 'sets KAFKA_RUN' do
-        expect(chef_run).to have_configured(env_path).with('KAFKA_RUN').as('"/opt/kafka/bin/kafka-run-class.sh"')
+        expect(chef_run).to have_configured(env_path).with('(export |)KAFKA_RUN').as('"/opt/kafka/bin/kafka-run-class.sh"')
       end
 
       it 'sets KAFKA_ARGS' do
-        expect(chef_run).to have_configured(env_path).with('KAFKA_ARGS').as('"kafka.Kafka"')
+        expect(chef_run).to have_configured(env_path).with('(export |)KAFKA_ARGS').as('"kafka.Kafka"')
       end
 
       it 'sets KAFKA_CONFIG' do
-        expect(chef_run).to have_configured(env_path).with('KAFKA_CONFIG').as('"/opt/kafka/config/server.properties"')
+        expect(chef_run).to have_configured(env_path).with('(export |)KAFKA_CONFIG').as('"/opt/kafka/config/server.properties"')
       end
     end
   end
@@ -493,6 +489,10 @@ describe 'kafka::_configure' do
         end
       end
     end
+
+    context 'when init_style is :runit' do
+      pending
+    end
   end
 
   context 'kafka service' do
@@ -507,7 +507,7 @@ describe 'kafka::_configure' do
 
       let :config_templates do
         config_paths.map do |config_path|
-          chef_run.template(config_path)
+          chef_run.template(config_path) || chef_run.file(config_path)
         end
       end
 
